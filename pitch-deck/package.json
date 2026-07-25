@@ -1,0 +1,11 @@
+{
+  "name": "moshi-help-pitch-deck",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "pdf": "node render-pdf.mjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.58.2"
+  }
+}

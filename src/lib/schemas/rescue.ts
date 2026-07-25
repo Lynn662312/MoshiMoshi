@@ -7,12 +7,17 @@ export const rescueCategorySchema = z.enum([
   "other",
 ]);
 
+export const explanationLanguageSchema = z.enum([
+  "English",
+  "Simplified Chinese",
+]);
+
 export const rescueInputSchema = z.object({
   category: rescueCategorySchema,
   situation: z.string().trim().min(12).max(3000),
   locationContext: z.string().trim().max(500).optional().default(""),
   knownInformation: z.string().trim().max(1500).optional().default(""),
-  preferredLanguage: z.literal("English").default("English"),
+  preferredLanguage: explanationLanguageSchema.default("English"),
 });
 
 const providerMetadataSchema = z.object({
@@ -71,6 +76,7 @@ export const rescueOutputWithoutProviderSchema = z.object({
     .max(8),
   staffHandoffCard: z.object({
     japanese: z.string().trim().min(2).max(1800),
+    romaji: z.string().trim().min(2).max(2200),
     english: z.string().trim().min(2).max(1800),
   }),
   fallbackAction: z.string().trim().min(2).max(600),
@@ -113,6 +119,7 @@ export const sessionMutationSchema = z.discriminatedUnion("action", [
 ]);
 
 export type RescueCategory = z.infer<typeof rescueCategorySchema>;
+export type ExplanationLanguage = z.infer<typeof explanationLanguageSchema>;
 export type RescueInput = z.infer<typeof rescueInputSchema>;
 export type RescueOutput = z.infer<typeof rescueOutputSchema>;
 export type RescuePlan = z.infer<typeof rescueOutputWithoutProviderSchema>;

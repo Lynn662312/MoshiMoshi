@@ -34,6 +34,7 @@ export async function POST(request: Request) {
         situation: parsed.data.situation,
         location_context: parsed.data.locationContext || null,
         known_information: parsed.data.knownInformation || null,
+        preferred_language: parsed.data.preferredLanguage,
         diagnosis: result.diagnosis,
         rescue_plan: plan,
         provider_metadata: provider,

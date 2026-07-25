@@ -27,7 +27,10 @@ import {
   UserRoundCheck,
   X,
 } from "lucide-react";
-import type { ConversationOutput } from "@/lib/schemas/rescue";
+import type {
+  ConversationOutput,
+  ExplanationLanguage,
+} from "@/lib/schemas/rescue";
 import type { RescueSession } from "@/lib/types/database";
 import { cn, formatDate } from "@/lib/utils";
 
@@ -93,12 +96,14 @@ function LanguageCard({
   japanese,
   romaji,
   english,
+  explanationLanguage,
   onFullscreen,
   label = "Show this to staff",
 }: {
   japanese: string;
   romaji?: string;
   english: string;
+  explanationLanguage: ExplanationLanguage;
   onFullscreen: () => void;
   label?: string;
 }) {
@@ -119,7 +124,10 @@ function LanguageCard({
             {romaji}
           </p>
         )}
-        <p className="mt-4 whitespace-pre-line border-t border-white/10 pt-4 text-sm leading-6 text-white/78">
+        <p
+          className="mt-4 whitespace-pre-line border-t border-white/10 pt-4 text-sm leading-6 text-white/78"
+          lang={explanationLanguage === "Simplified Chinese" ? "zh-CN" : "en"}
+        >
           {english}
         </p>
       </div>
@@ -140,11 +148,15 @@ function LanguageCard({
 
 function StaffDisplay({
   japanese,
+  romaji,
   english,
+  explanationLanguage,
   onClose,
 }: {
   japanese: string;
+  romaji?: string;
   english: string;
+  explanationLanguage: ExplanationLanguage;
   onClose: () => void;
 }) {
   useEffect(() => {
@@ -188,7 +200,15 @@ function StaffDisplay({
           >
             {japanese}
           </p>
-          <p className="mt-8 max-w-4xl whitespace-pre-line border-t border-line pt-7 text-base leading-7 text-muted sm:text-xl sm:leading-9">
+          {romaji && (
+            <p className="mt-6 whitespace-pre-line text-sm leading-7 text-muted sm:text-lg">
+              {romaji}
+            </p>
+          )}
+          <p
+            className="mt-8 max-w-4xl whitespace-pre-line border-t border-line pt-7 text-base leading-7 text-muted sm:text-xl sm:leading-9"
+            lang={explanationLanguage === "Simplified Chinese" ? "zh-CN" : "en"}
+          >
             {english}
           </p>
         </div>
@@ -200,8 +220,12 @@ function StaffDisplay({
 export function RescueWorkspace({ session }: { session: RescueSession }) {
   const router = useRouter();
   const plan = session.rescue_plan;
+  const explanationLanguage = session.preferred_language ?? "English";
+  const explanationLang =
+    explanationLanguage === "Simplified Chinese" ? "zh-CN" : "en";
   const [fullscreen, setFullscreen] = useState<{
     japanese: string;
+    romaji?: string;
     english: string;
   } | null>(null);
   const [staffMessage, setStaffMessage] = useState("");
@@ -322,6 +346,12 @@ export function RescueWorkspace({ session }: { session: RescueSession }) {
             </span>
             <span>{session.status}</span>
             <span>·</span>
+            <span>
+              {explanationLanguage === "Simplified Chinese"
+                ? "简体中文说明"
+                : "English explanation"}
+            </span>
+            <span>·</span>
             <time dateTime={session.created_at}>
               {formatDate(session.created_at)}
             </time>
@@ -377,9 +407,11 @@ export function RescueWorkspace({ session }: { session: RescueSession }) {
             >
               <LanguageCard
                 {...plan.openingMessage}
+                explanationLanguage={explanationLanguage}
                 onFullscreen={() =>
                   setFullscreen({
                     japanese: plan.openingMessage.japanese,
+                    romaji: plan.openingMessage.romaji,
                     english: plan.openingMessage.english,
                   })
                 }
@@ -393,7 +425,9 @@ export function RescueWorkspace({ session }: { session: RescueSession }) {
             >
               <LanguageCard
                 japanese={plan.staffHandoffCard.japanese}
+                romaji={plan.staffHandoffCard.romaji}
                 english={plan.staffHandoffCard.english}
+                explanationLanguage={explanationLanguage}
                 label="Full summary for official staff"
                 onFullscreen={() => setFullscreen(plan.staffHandoffCard)}
               />
@@ -415,14 +449,17 @@ export function RescueWorkspace({ session }: { session: RescueSession }) {
                         <p className="font-semibold text-ink" lang="ja">
                           {question.japanese}
                         </p>
-                        <p className="mt-1 text-xs text-muted">
+                        <p className="mt-1 text-xs text-muted" lang={explanationLang}>
                           {question.english}
                         </p>
                       </div>
                       <ChevronDown className="size-4 shrink-0 text-muted transition group-open:rotate-180" />
                     </summary>
                     <div className="border-t border-line p-4">
-                      <p className="text-xs leading-5 text-muted">
+                      <p
+                        className="text-xs leading-5 text-muted"
+                        lang={explanationLang}
+                      >
                         <strong className="text-ink">Why they ask:</strong>{" "}
                         {question.whyTheyAsk}
                       </p>
@@ -436,7 +473,10 @@ export function RescueWorkspace({ session }: { session: RescueSession }) {
                         <p className="mt-2 text-xs leading-5 text-muted">
                           {question.suggestedAnswerRomaji}
                         </p>
-                        <p className="mt-2 text-sm leading-6 text-muted">
+                        <p
+                          className="mt-2 text-sm leading-6 text-muted"
+                          lang={explanationLang}
+                        >
                           {question.suggestedAnswerEnglish}
                         </p>
                         <div className="mt-3">
@@ -468,7 +508,10 @@ export function RescueWorkspace({ session }: { session: RescueSession }) {
                         {turn.staffMessage}
                       </p>
                       <div className="mt-4 rounded-xl bg-surface p-4">
-                        <p className="text-xs leading-5 text-muted">
+                        <p
+                          className="text-xs leading-5 text-muted"
+                          lang={explanationLang}
+                        >
                           {turn.response.staffMeaning}
                         </p>
                         <p className="mt-3 text-xl font-semibold leading-8" lang="ja">
@@ -477,7 +520,10 @@ export function RescueWorkspace({ session }: { session: RescueSession }) {
                         <p className="mt-2 text-xs leading-5 text-muted">
                           {turn.response.reply.romaji}
                         </p>
-                        <p className="mt-2 text-sm leading-6 text-muted">
+                        <p
+                          className="mt-2 text-sm leading-6 text-muted"
+                          lang={explanationLang}
+                        >
                           {turn.response.reply.english}
                         </p>
                         <div className="mt-3 flex flex-wrap gap-2">
@@ -488,6 +534,7 @@ export function RescueWorkspace({ session }: { session: RescueSession }) {
                             onClick={() =>
                               setFullscreen({
                                 japanese: turn.response.reply.japanese,
+                                romaji: turn.response.reply.romaji,
                                 english: turn.response.reply.english,
                               })
                             }
@@ -608,6 +655,7 @@ export function RescueWorkspace({ session }: { session: RescueSession }) {
       {fullscreen && (
         <StaffDisplay
           {...fullscreen}
+          explanationLanguage={explanationLanguage}
           onClose={() => setFullscreen(null)}
         />
       )}

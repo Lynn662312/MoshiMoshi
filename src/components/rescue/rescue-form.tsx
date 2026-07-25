@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import {
+  Languages,
   ArrowRight,
   BedDouble,
   Box,
@@ -16,7 +17,10 @@ import {
   LOCKER_DEMO_LOCATION,
   LOCKER_DEMO_SITUATION,
 } from "@/lib/ai/demo-fixture";
-import type { RescueCategory } from "@/lib/schemas/rescue";
+import type {
+  ExplanationLanguage,
+  RescueCategory,
+} from "@/lib/schemas/rescue";
 import { cn } from "@/lib/utils";
 
 const categories = [
@@ -59,6 +63,8 @@ export function RescueForm() {
   const [situation, setSituation] = useState("");
   const [locationContext, setLocationContext] = useState("");
   const [knownInformation, setKnownInformation] = useState("");
+  const [preferredLanguage, setPreferredLanguage] =
+    useState<ExplanationLanguage>("English");
   const [loading, setLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
   const [error, setError] = useState("");
@@ -113,7 +119,7 @@ export function RescueForm() {
           situation,
           locationContext,
           knownInformation,
-          preferredLanguage: "English",
+          preferredLanguage,
         }),
       });
       const data = (await response.json()) as {
@@ -191,6 +197,29 @@ export function RescueForm() {
       </button>
 
       <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
+        <div>
+          <label className="field-label" htmlFor="explanation-language">
+            <span className="inline-flex items-center gap-2">
+              <Languages className="size-4 text-indigo" />
+              Explanation language
+            </span>
+          </label>
+          <select
+            className="field min-h-12"
+            id="explanation-language"
+            value={preferredLanguage}
+            onChange={(event) =>
+              setPreferredLanguage(event.target.value as ExplanationLanguage)
+            }
+          >
+            <option value="English">English</option>
+            <option value="Simplified Chinese">简体中文</option>
+          </select>
+          <p className="mt-2 text-xs leading-5 text-muted">
+            Japanese messages stay polite and unchanged; guidance and
+            explanations use this language.
+          </p>
+        </div>
         <div>
           <label className="field-label" htmlFor="situation">
             What happened?

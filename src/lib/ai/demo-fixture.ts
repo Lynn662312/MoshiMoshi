@@ -1,5 +1,6 @@
 import type {
   ConversationReply,
+  ExplanationLanguage,
   RescueInput,
   RescuePlan,
 } from "@/lib/schemas/rescue";
@@ -134,6 +135,8 @@ export const lockerDemoPlan: RescuePlan = {
   staffHandoffCard: {
     japanese:
       "駅員さんへ\n交通系ICカードを使って、この駅のロッカーに荷物を入れました。そのICカードを紛失したため、ロッカーを開けられません。ロッカーの正確な番号は分かりませんが、場所をご案内できます。荷物は紺色のスーツケースです。本人確認や所有確認に必要な手続きを教えてください。",
+    romaji:
+      "Ekiin-san e\nKōtsū-kei IC kādo o tsukatte, kono eki no rokkā ni nimotsu o iremashita. Sono IC kādo o funshitsu shita tame, rokkā o akeraremasen. Rokkā no seikaku na bangō wa wakarimasen ga, basho o go-annai dekimasu. Nimotsu wa kon-iro no sūtsukēsu desu. Honnin kakunin ya shoyū kakunin ni hitsuyō na tetsuzuki o oshiete kudasai.",
     english:
       "For station staff: I stored luggage in a locker at this station using a transport IC card. I lost that card and cannot open the locker. I do not know the exact locker number, but I can show you the location. The luggage is a navy suitcase. Please tell me the official steps and what you need to verify my identity or ownership.",
   },
@@ -143,46 +146,173 @@ export const lockerDemoPlan: RescuePlan = {
     "Moshi is not an emergency service and cannot unlock the locker or guarantee recovery. Use only official station or locker support channels, and do not share passport or payment details with unofficial helpers.",
 };
 
-export function demoConversationReply(staffMessage: string): ConversationReply {
+export const lockerDemoPlanChinese: RescuePlan = {
+  diagnosis: {
+    title: "车站寄存柜绑定的交通 IC 卡丢失",
+    summary:
+      "行李很可能仍安全存放在寄存柜中，但用于识别和开启寄存柜的交通 IC 卡已经丢失。需要由车站工作人员或寄存柜服务人员确认具体柜位，并说明正规取回流程。",
+    goal: "确认寄存柜位置，并请官方工作人员协助核实开启方式。",
+    urgency: "medium",
+    recommendedHelper: "最近检票口的车站工作人员或寄存柜官方服务点",
+  },
+  immediateSteps: [
+    {
+      order: 1,
+      action: "先留在寄存柜区域附近，拍下整排柜子、周边标识和服务说明。",
+      reason: "位置和运营方信息能帮助工作人员确认寄存柜，不必只依靠记忆。",
+    },
+    {
+      order: 2,
+      action: "前往最近的有人值守检票口，向工作人员出示下方说明卡。",
+      reason: "车站工作人员可以确认寄存柜运营方，并引导你办理正规的取回手续。",
+    },
+    {
+      order: 3,
+      action: "准备描述行李外观，并出示任何能证明行李属于你的资料。",
+      reason: "工作人员在安排开启寄存柜前，可能需要核实物品所有权。",
+    },
+  ],
+  informationToPrepare: [
+    {
+      label: "寄存柜位置",
+      whyNeeded: "工作人员需要知道车站、楼层、出口及寄存柜区域。",
+      example: "西口附近，便利店旁边",
+    },
+    {
+      label: "柜号或大致位置",
+      whyNeeded: "这能帮助缩小具体柜位范围。",
+      example: "从上往下第二排，315 号柜附近",
+    },
+    {
+      label: "行李外观",
+      whyNeeded: "可用于协助核实物品所有权。",
+      example: "深蓝色硬壳行李箱，系有黄色绑带",
+    },
+    {
+      label: "大致存放时间",
+      whyNeeded: "有助于工作人员核对寄存记录。",
+      example: "今天上午 10:30 左右",
+    },
+    {
+      label: "交通 IC 卡信息",
+      whyNeeded: "卡片类型、收据或手机记录可能有助于确认交易。",
+      example: "实体 Suica 卡，无法提供卡号",
+    },
+  ],
+  openingMessage: {
+    japanese: lockerDemoPlan.openingMessage.japanese,
+    romaji: lockerDemoPlan.openingMessage.romaji,
+    english:
+      "不好意思。我用交通 IC 卡把行李存进了这个车站的寄存柜，但卡丢失了，现在无法打开寄存柜。请问我应该怎么办？",
+  },
+  expectedQuestions: [
+    {
+      id: "which-locker",
+      japanese: lockerDemoPlan.expectedQuestions[0].japanese,
+      romaji: lockerDemoPlan.expectedQuestions[0].romaji,
+      english: "是哪个寄存柜？",
+      whyTheyAsk: "工作人员需要确认具体柜位和运营方。",
+      suggestedAnswerJapanese:
+        lockerDemoPlan.expectedQuestions[0].suggestedAnswerJapanese,
+      suggestedAnswerRomaji:
+        lockerDemoPlan.expectedQuestions[0].suggestedAnswerRomaji,
+      suggestedAnswerEnglish: "我不知道准确柜号，但可以带您去寄存柜的位置。",
+    },
+    {
+      id: "when-stored",
+      japanese: lockerDemoPlan.expectedQuestions[1].japanese,
+      romaji: lockerDemoPlan.expectedQuestions[1].romaji,
+      english: "你是什么时候把行李放进去的？",
+      whyTheyAsk: "大致时间可能有助于确认寄存记录。",
+      suggestedAnswerJapanese:
+        lockerDemoPlan.expectedQuestions[1].suggestedAnswerJapanese,
+      suggestedAnswerRomaji:
+        lockerDemoPlan.expectedQuestions[1].suggestedAnswerRomaji,
+      suggestedAnswerEnglish: "是今天上午 10:30 左右。",
+    },
+    {
+      id: "luggage-description",
+      japanese: lockerDemoPlan.expectedQuestions[2].japanese,
+      romaji: lockerDemoPlan.expectedQuestions[2].romaji,
+      english: "行李是什么样的？",
+      whyTheyAsk: "描述行李外观有助于核实物品所有权。",
+      suggestedAnswerJapanese:
+        lockerDemoPlan.expectedQuestions[2].suggestedAnswerJapanese,
+      suggestedAnswerRomaji:
+        lockerDemoPlan.expectedQuestions[2].suggestedAnswerRomaji,
+      suggestedAnswerEnglish: "是一个深蓝色行李箱，我也可以说明其他特征。",
+    },
+  ],
+  staffHandoffCard: {
+    japanese: lockerDemoPlan.staffHandoffCard.japanese,
+    romaji: lockerDemoPlan.staffHandoffCard.romaji,
+    english:
+      "给车站工作人员：我用交通 IC 卡将行李存进了这个车站的寄存柜。由于该卡丢失，现在无法打开寄存柜。我不知道准确柜号，但可以带您去具体位置。行李是一个深蓝色行李箱。请告知正规处理流程，以及核实身份或物品所有权需要提供什么。",
+  },
+  fallbackAction:
+    "如果检票口工作人员无法直接处理，请他们指出寄存柜的运营方，或柜体上标注的官方联系方式。身份核实可能需要时间，请为后续行程预留余地。",
+  safetyNote:
+    "Moshi 不是紧急服务，无法开启寄存柜，也不能保证一定能取回行李。请只通过车站或寄存柜运营方的官方渠道处理，不要向非官方人员提供护照或付款信息。",
+};
+
+export function getLockerDemoPlan(language: ExplanationLanguage) {
+  return language === "Simplified Chinese"
+    ? lockerDemoPlanChinese
+    : lockerDemoPlan;
+}
+
+export function demoConversationReply(
+  staffMessage: string,
+  language: ExplanationLanguage = "English",
+): ConversationReply {
   const asksLocker = /どの|ロッカー|number|which/i.test(staffMessage);
+  const useChinese = language === "Simplified Chinese";
 
   if (asksLocker) {
     return {
-      staffMeaning:
-        "The staff member is probably asking which locker you used.",
-      conversationStage: "Identifying the locker",
-      recommendedAction:
-        "Show them the locker area or your photo, and be clear that you do not know the exact number.",
+      staffMeaning: useChinese
+        ? "工作人员可能在问你使用的是哪个寄存柜。"
+        : "The staff member is probably asking which locker you used.",
+      conversationStage: useChinese ? "确认寄存柜" : "Identifying the locker",
+      recommendedAction: useChinese
+        ? "带工作人员查看寄存柜区域或照片，并明确说明你不知道准确柜号。"
+        : "Show them the locker area or your photo, and be clear that you do not know the exact number.",
       reply: {
         japanese:
           "正確な番号は分かりませんが、ロッカーの場所をご案内できます。写真もあります。",
         romaji:
           "Seikaku na bangō wa wakarimasen ga, rokkā no basho o go-annai dekimasu. Shashin mo arimasu.",
-        english:
-          "I do not know the exact number, but I can show you the locker location. I also have a photo.",
+        english: useChinese
+          ? "我不知道准确柜号，但可以带您去寄存柜的位置。我也有照片。"
+          : "I do not know the exact number, but I can show you the locker location. I also have a photo.",
       },
-      likelyNextStep:
-        "The staff member may walk with you to the locker bank or contact its operator.",
+      likelyNextStep: useChinese
+        ? "工作人员可能会陪你前往寄存柜区域，或联系寄存柜运营方。"
+        : "The staff member may walk with you to the locker bank or contact its operator.",
       needsHumanHelp: false,
     };
   }
 
   return {
-    staffMeaning:
-      "The staff member is giving or requesting information about the next verification step.",
-    conversationStage: "Confirming details",
-    recommendedAction:
-      "Ask them to repeat slowly and point to any form or place you need to go.",
+    staffMeaning: useChinese
+      ? "工作人员正在说明或询问下一步核实所需的信息。"
+      : "The staff member is giving or requesting information about the next verification step.",
+    conversationStage: useChinese ? "核实详细信息" : "Confirming details",
+    recommendedAction: useChinese
+      ? "请对方慢一点再说一次，并指出你需要填写的表格或前往的地点。"
+      : "Ask them to repeat slowly and point to any form or place you need to go.",
     reply: {
       japanese:
         "すみません、日本語があまり分かりません。もう一度ゆっくりお願いできますか。次に何をすればよいですか。",
       romaji:
         "Sumimasen, Nihongo ga amari wakarimasen. Mō ichido yukkuri onegai dekimasu ka. Tsugi ni nani o sureba yoi desu ka.",
-      english:
-        "Sorry, I do not understand much Japanese. Could you say that again slowly? What should I do next?",
+      english: useChinese
+        ? "不好意思，我不太懂日语。可以请您再慢慢说一遍吗？我接下来应该做什么？"
+        : "Sorry, I do not understand much Japanese. Could you say that again slowly? What should I do next?",
     },
-    likelyNextStep:
-      "They may restate the instruction, point you to the operator, or ask for identifying details.",
+    likelyNextStep: useChinese
+      ? "对方可能会重新说明，指引你联系运营方，或询问用于核实身份和物品的信息。"
+      : "They may restate the instruction, point you to the operator, or ask for identifying details.",
     needsHumanHelp: false,
   };
 }

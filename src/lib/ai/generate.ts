@@ -10,8 +10,8 @@ import {
 import type { RescueSession } from "@/lib/types/database";
 import {
   demoConversationReply,
+  getLockerDemoPlan,
   isLockerDemo,
-  lockerDemoPlan,
 } from "@/lib/ai/demo-fixture";
 import { getGmiProvider } from "@/lib/ai/gmi-provider";
 import {
@@ -50,7 +50,7 @@ export async function generateRescue(
     } catch (gmiError) {
       if (demoEnabled() && isLockerDemo(input)) {
         return {
-          ...lockerDemoPlan,
+          ...getLockerDemoPlan(input.preferredLanguage),
           provider: {
             name: "qwen",
             fallbackUsed: false,
@@ -97,7 +97,10 @@ export async function generateConversation(
         session.situation.toLowerCase().includes("ic card")
       ) {
         return {
-          ...demoConversationReply(staffMessage),
+          ...demoConversationReply(
+            staffMessage,
+            session.preferred_language ?? "English",
+          ),
           provider: {
             name: "qwen",
             fallbackUsed: false,

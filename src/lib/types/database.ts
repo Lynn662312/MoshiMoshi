@@ -1,5 +1,6 @@
 import type {
   ConversationOutput,
+  ExplanationLanguage,
   RescueCategory,
   RescuePlan,
 } from "@/lib/schemas/rescue";
@@ -19,6 +20,7 @@ export type RescueSession = {
   situation: string;
   location_context: string | null;
   known_information: string | null;
+  preferred_language: ExplanationLanguage;
   status: RescueStatus;
   diagnosis: RescuePlan["diagnosis"];
   rescue_plan: RescuePlan;
