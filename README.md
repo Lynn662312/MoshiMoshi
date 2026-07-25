@@ -520,7 +520,7 @@ plans.
 
 ## Creator
 
-Created by **Lynn** for the **Agent Forge AI Hackathon**.
+Created for the **Agent Forge AI Hackathon**.
 
-[LinkedIn](https://www.linkedin.com/in/jiaying662312)
+
 
