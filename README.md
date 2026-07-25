@@ -1,258 +1,526 @@
-# Moshi — Japan Rescue Companion
+# Moshi Help — Japan Rescue Companion
 
-**From language panic to the next clear step.**
+**Know what to do. Know what to say.**
 
-Moshi is a mobile-first, situation-aware rescue companion for travellers in
-Japan. It turns an unfamiliar problem into an ordered plan: what is happening,
-what to do now, who to approach, what to prepare, what to say in Japanese, what
-staff may ask, and how to continue the conversation.
+[Live demo](https://moshi-moshi-bay.vercel.app/) ·
+[Pitch deck](./pitch-deck/moshi-help-pitch-deck.pdf)
 
-> **Translation tools translate words. Moshi understands the situation,
-> prepares the traveller, and guides the conversation towards resolution.**
+Moshi Help, branded as **moshi** in the application, is a mobile-first AI
+rescue companion for first-time and solo travellers in Japan. It helps a
+traveller move from language anxiety to a practical plan when an unexpected
+problem happens at a station, hotel, locker, or another unfamiliar place.
 
-## Founder story
+Instead of returning only a translated sentence, Moshi explains:
 
-The idea comes from a specific travel failure: luggage was stored in a Japanese
-station locker using an IC transport card, then the card was lost. A sentence
-translator could express “I lost my card,” but it could not explain which staff
-member to find, which details would prove ownership, what the locker operator
-might need, or how the conversation would change after the first sentence.
+- what may be happening;
+- what to do first and why;
+- which official person or desk to approach;
+- what information to prepare;
+- what to say in polite Japanese;
+- what staff may ask next;
+- how to continue the conversation.
 
-Moshi is built for that gap between translating a phrase and actually resolving
-a stressful situation.
+> Translation handles words. Moshi helps the traveller handle the situation.
 
-## The user pain
+## The problem
 
-First-time visitors often face two problems at once:
+Travel problems become harder when the traveller faces two unfamiliar systems
+at once:
 
-- the procedure is unfamiliar;
-- the language needed to navigate that procedure is unfamiliar.
+1. they do not know the local procedure;
+2. they do not know how to communicate within that procedure.
 
-Stress makes it harder to decide what matters. A traveller may not know whether
-to approach station staff or a locker operator, which facts to prepare, or what
-a staff member is asking next. Static phrasebooks and one-shot translations
-stop precisely when the real conversation begins.
+A traveller may be able to translate “I lost my card,” but still not know
+whether to find station staff, the locker operator, or another official helper.
+They may not know which details prove ownership, what questions staff will ask,
+or how to reply after the first sentence.
 
-## What the MVP supports
+This is especially stressful for first-time and solo travellers, who cannot
+always rely on a companion to interpret the situation.
 
-- Locker and belongings problems, with a polished lost-IC-card demo
-- Station and transport problems
-- Hotel and reservation problems
-- Free-form situations
-- Email/password registration, login, logout, and persistent sessions
-- Saved rescue history, status changes, deletion, and reopening
-- Adaptive staff-message interpretation and reply generation
-- Full-screen Japanese staff handoff cards with romaji and English
+## The solution
 
-## Agent workflow
+Moshi turns a free-form description into a structured rescue plan. The user
+receives ordered actions, a recommended official helper, a preparation
+checklist, and Japanese communication that can be copied or shown directly to
+staff.
 
-1. Classify the situation and identify the traveller’s practical goal.
-2. Assess urgency without making the situation sound more alarming.
-3. Name the appropriate official helper.
-4. Order immediate actions and surface missing information.
-5. Generate polite Japanese, readable romaji, and an English meaning.
-6. Predict likely staff questions and prepare adaptable answers.
-7. Interpret each new staff message and generate the next reply.
-8. Save the entire rescue record so it can be reopened later.
+The conversation does not stop after the opening message. A traveller can type
+or paste what a staff member said—in Japanese, romaji, or an English
+description—and Moshi prepares the next practical action and reply.
 
-The agent is instructed not to invent procedures, phone numbers, fees, opening
-hours, policies, or guarantees.
+The goal is not to replace local staff. It is to help the traveller approach
+the right person with clearer context and greater confidence.
 
-## Architecture
+## Current MVP
+
+### Supported situations
+
+- Locker, lost-item, luggage, and belongings problems
+- Station, train, ticket, route, and transport problems
+- Hotel, check-in, booking, reservation, and room problems
+- Free-form situations outside the preset categories
+- A polished lost-IC-card locker demo
+
+### Traveller experience
+
+- Ordered immediate actions with reasons
+- Urgency classification and a clearly stated practical goal
+- Identification of the appropriate official helper
+- A checklist of information the traveller should prepare
+- Polite Japanese messages with readable romaji
+- Explanations in English or Simplified Chinese
+- Predicted staff questions and adaptable suggested answers
+- A full-screen staff handoff view
+- Copy-to-clipboard controls for Japanese messages
+- Continued conversation guidance based on the latest staff message
+- Light and dark themes
+
+### Accounts and saved history
+
+- Email and password registration and login
+- Optional email-confirmation callback
+- Anonymous guest access when enabled in Supabase
+- Private saved rescue plans
+- Reopenable conversation history
+- Active and resolved status management
+- Rescue-plan deletion
+
+Guest sessions use an anonymous Supabase user. Their records remain protected
+by the same ownership rules, but cannot be recovered after the guest signs out
+or loses the browser session.
+
+## How it works
 
 ```mermaid
 flowchart LR
-    U["Traveller on mobile"] --> N["Next.js App Router"]
-    N --> A["Supabase Auth"]
-    N --> R["Protected route handlers"]
-    R --> Q["Qwen Cloud primary"]
-    Q -->|invalid or unavailable| G["GMI Cloud fallback"]
-    Q --> Z["Zod validation"]
-    G --> Z
-    Z --> P["Supabase Postgres"]
-    P --> H["History and adaptive conversation"]
+    U["Traveller describes the problem"] --> V["Zod input validation"]
+    V --> Q["Qwen primary provider"]
+    Q --> J["Structured JSON validation"]
+    Q -->|failure, timeout, or invalid output| G["GMI Cloud fallback"]
+    G --> J
+    J --> P["Ordered rescue plan"]
+    P --> S["Supabase persistence"]
+    S --> C["Adaptive staff conversation"]
 ```
 
-The application uses Next.js Server Components for authenticated data reads,
-small Client Components for interaction, and Route Handlers for rescue
-generation and mutations. There is no separate backend service.
+1. The traveller chooses a category and describes what happened.
+2. The server validates the input.
+3. Qwen generates a structured plan.
+4. The response is parsed and validated with Zod.
+5. Invalid JSON or schema output receives one correction attempt.
+6. If Qwen fails, times out, or remains invalid, GMI Cloud is called.
+7. The validated plan is saved to the authenticated user’s private history.
+8. Each staff-message turn uses the saved plan and recent conversation context
+   to prepare the next reply.
 
-## Authentication and database
+## AI sponsor integrations
 
-Supabase SSR stores the session in cookies. `src/proxy.ts` refreshes sessions
-and performs early redirects, while every protected page and API route verifies
-the user again close to the data source. The proxy is not treated as the sole
-authorization layer.
+This submission claims two AI Stack Partner integrations.
 
-Only one application table is used: `public.rescue_sessions`. It stores the
-traveller input, diagnosis, rescue plan, provider metadata, conversation
-history, status, and timestamps.
+### [Qwen Cloud](https://www.qwencloud.com/?utm_source=aibuilders) — primary
 
-The migration at `supabase/migrations/001_initial_schema.sql`:
+Qwen is the primary reasoning and generation provider. The application uses an
+OpenAI-compatible Qwen endpoint to:
 
-- creates the table and ownership index;
-- restricts category and status values;
-- enables Row Level Security;
-- grants Data API access explicitly to `authenticated`;
-- denies anonymous table access;
-- allows authenticated users to select, insert, update, and delete only rows
-  where `user_id = auth.uid()`;
-- keeps `updated_at` current with a security-invoker trigger.
+- classify the situation and urgency;
+- identify the traveller’s goal and the correct official helper;
+- build ordered next actions;
+- detect missing information;
+- generate Japanese, romaji, and the selected explanation language;
+- predict likely staff questions;
+- produce the staff handoff card;
+- interpret new staff messages and prepare the next reply.
 
-The explicit grants account for Supabase’s 2026 Data API default, where newly
-created tables may not be exposed automatically.
+The default project configuration uses:
 
-## Sponsored integrations
+```dotenv
+QWEN_BASE_URL=https://dashscope-intl.aliyuncs.com/compatible-mode/v1
+QWEN_MODEL=qwen3.7-plus
+QWEN_ENABLE_THINKING=true
+```
 
-### Qwen Cloud — primary
+Implementation:
 
-`src/lib/ai/qwen-provider.ts` creates a lazy OpenAI-compatible client from:
+- `src/lib/ai/qwen-provider.ts`
+- `src/lib/ai/provider-core.ts`
+- `src/lib/ai/generate.ts`
+- `src/lib/ai/prompts.ts`
 
-- `QWEN_API_KEY`
-- `QWEN_BASE_URL`
-- `QWEN_MODEL`
-- `QWEN_ENABLE_THINKING`
-- `QWEN_TIMEOUT_MS`
+### [GMI Cloud](https://www.gmicloud.ai/en?utm_source=luma) — fallback
 
-Qwen performs classification, planning, missing-information detection,
-Japanese/romaji generation, expected-question prediction, adaptive replies,
-and the staff handoff card.
+GMI Cloud is the automatic fallback provider. It is called only when the
+primary Qwen path fails, times out, or cannot return valid structured output.
+The fallback uses the same prompts, schema, and validation contract, so the UI
+receives the same response shape.
 
-### GMI Cloud — fallback
+The default project configuration uses:
 
-`src/lib/ai/gmi-provider.ts` uses the same validated provider interface:
+```dotenv
+GMI_BASE_URL=https://api.gmi-serving.com/v1
+GMI_MODEL=Qwen/Qwen3.7-Max
+```
 
-- `GMI_API_KEY`
-- `GMI_BASE_URL`
-- `GMI_MODEL`
+Implementation:
 
-The orchestrator calls Qwen first, validates with Zod, and retries once with a
-correction prompt if output is invalid. It calls GMI only after Qwen fails,
-times out, or remains invalid. Provider metadata reports GMI only when that
-call succeeds.
+- `src/lib/ai/gmi-provider.ts`
+- `src/lib/ai/generate.ts`
+- `scripts/provider-flow-test.ts`
 
-### Deterministic demo fixture
+Provider metadata is stored with every rescue so the application can show
+whether Qwen, GMI fallback, or the limited demo fixture produced the plan.
 
-With `DEMO_MODE=true`, only the preset lost-IC-card locker story may fall back
-to a deterministic rescue plan after both provider paths fail. Arbitrary user
-situations never receive mock output. Saved metadata marks this path as a demo
-fixture instead of claiming a live provider success.
+No other AI Stack Partner is claimed as a product integration for this
+submission.
 
-### Daytona smoke test
+## Hackathon alignment
 
-The optional `scripts/daytona-smoke-test.ts` uses the official Daytona
-TypeScript SDK to create an ephemeral sandbox, upload the project without
-secrets or build artifacts, run install/lint/typecheck/build, print a real
-pass/fail result, and delete the sandbox.
+Built for the **Agent Forge AI Hackathon**.
 
-If `DAYTONA_API_KEY` is absent, it prints an explicit skip and does not claim a
-pass.
+### Theme alignment
 
-## Environment variables
+Moshi is rooted in travel within Japan. The product focuses on real interactions
+with station staff, ticket gates, coin lockers, hotels, reservations, and
+Japanese-language service situations.
 
-Copy the example file:
+### Innovation
+
+Moshi combines situation reasoning, procedural guidance, multilingual
+communication, and conversation continuation. It goes beyond a one-shot
+translator by helping the traveller progress through the whole interaction.
+
+### Real-life problem solving
+
+The product addresses a practical gap: a traveller may know the words for a
+problem but still not know the correct process, the correct helper, or the next
+reply.
+
+### Sponsored product usage
+
+- Qwen: primary rescue planning and conversation engine
+- GMI Cloud: validated automatic fallback path
+
+## Tech stack
+
+| Layer | Technology |
+| --- | --- |
+| Framework | Next.js 16 App Router |
+| UI | React 19, TypeScript 5 |
+| Styling | Tailwind CSS 4, custom design tokens, Geist |
+| Icons | Lucide React |
+| AI client | OpenAI JavaScript SDK with compatible provider endpoints |
+| Primary AI | Qwen |
+| Fallback AI | GMI Cloud |
+| Validation | Zod 4 |
+| Authentication | Supabase Auth and Supabase SSR |
+| Database | Supabase Postgres |
+| Authorization | Row Level Security plus server-side ownership filters |
+| Hosting | Vercel |
+| Tooling | ESLint 9, TypeScript, tsx |
+
+## Architecture
+
+Moshi uses a single Next.js application rather than a separate frontend and
+backend service.
+
+- Server Components read authenticated data.
+- Client Components handle forms, copying, theme changes, and interactive
+  rescue workspaces.
+- Route Handlers perform AI generation and database mutations.
+- `src/proxy.ts` refreshes Supabase sessions and redirects unauthenticated
+  requests.
+- Protected pages and API handlers verify the user again near the data source.
+- Provider API keys remain server-only.
+
+### API routes
+
+| Route | Method | Purpose |
+| --- | --- | --- |
+| `/api/rescue` | `POST` | Validate input, generate a plan, and save it |
+| `/api/conversation` | `POST` | Interpret a staff message and save the next turn |
+| `/api/rescue/[id]` | `PATCH` | Change a rescue status |
+| `/api/rescue/[id]` | `DELETE` | Delete an owned rescue |
+| `/auth/callback` | `GET` | Exchange a Supabase email-confirmation code |
+
+Every rescue and conversation mutation requires an authenticated Supabase user.
+Queries also filter by `user_id`, while database Row Level Security provides a
+second ownership boundary.
+
+## Database and privacy
+
+The SQL migrations create two application tables:
+
+### `public.rescue_sessions`
+
+Stores:
+
+- traveller input and selected explanation language;
+- diagnosis and complete rescue plan;
+- provider metadata;
+- conversation history;
+- active, resolved, or archived status;
+- created and updated timestamps.
+
+### `public.profiles`
+
+Stores:
+
+- the authenticated user ID;
+- optional full name;
+- whether the account is a guest;
+- created and updated timestamps.
+
+Both tables use Row Level Security. Authenticated users can access only records
+associated with their own Supabase user ID. Anonymous Data API access is
+revoked.
+
+The application uses the public Supabase URL and anon/publishable key in the
+browser. Qwen and GMI credentials are server-only. A Supabase service-role key
+is not required by the application.
+
+## Project structure
+
+```text
+src/
+├── app/
+│   ├── (auth)/                 # Login and registration
+│   ├── (protected)/            # App, history, and rescue workspace
+│   ├── api/                    # Rescue and conversation route handlers
+│   ├── auth/callback/          # Supabase confirmation callback
+│   └── page.tsx                # Public landing page
+├── components/
+│   ├── app/                    # Authenticated application header
+│   ├── auth/                   # Email/password and guest auth form
+│   ├── brand/                  # Moshi logo
+│   ├── rescue/                 # Rescue form, plan, and history UI
+│   └── theme/                  # Light/dark theme control
+├── lib/
+│   ├── ai/                     # Providers, prompts, failover, demo fixture
+│   ├── schemas/                # Zod request and response contracts
+│   ├── supabase/               # Browser, server, and proxy clients
+│   └── types/                  # Database-facing TypeScript types
+└── proxy.ts                    # Session refresh and route redirects
+
+supabase/migrations/            # Database schema and RLS policies
+scripts/                        # Provider and optional environment checks
+pitch-deck/                     # Editable hackathon pitch deck and PDF
+```
+
+## Run locally
+
+### Requirements
+
+- Node.js 20.9 or newer
+- npm
+- A Supabase project
+- Qwen credentials
+- GMI Cloud credentials for fallback coverage
+
+### 1. Install dependencies
+
+```bash
+npm install
+```
+
+### 2. Configure environment variables
+
+Copy the example:
 
 ```bash
 cp .env.example .env.local
 ```
 
-Required for the product:
+On Windows PowerShell:
+
+```powershell
+Copy-Item .env.example .env.local
+```
+
+Configure:
 
 ```dotenv
+# Supabase
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
+
+# Qwen primary
 QWEN_API_KEY=
-QWEN_BASE_URL=
-QWEN_MODEL=
+QWEN_BASE_URL=https://dashscope-intl.aliyuncs.com/compatible-mode/v1
+QWEN_MODEL=qwen3.7-plus
 QWEN_ENABLE_THINKING=true
 QWEN_TIMEOUT_MS=120000
+
+# GMI Cloud fallback
 GMI_API_KEY=
-GMI_BASE_URL=
-GMI_MODEL=
+GMI_BASE_URL=https://api.gmi-serving.com/v1
+GMI_MODEL=Qwen/Qwen3.7-Max
+
+# Application
 DEMO_MODE=false
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ```
 
-Optional:
+Development-only provider controls are also available:
 
 ```dotenv
-DAYTONA_API_KEY=
+FORCE_AI_PROVIDER=auto
+SIMULATE_QWEN_FAILURE=false
 ```
 
-Only the Supabase URL and anon/publishable key are public. Provider and Daytona
-keys are server-only. A Supabase service-role key is not used.
+`FORCE_AI_PROVIDER` may be `auto`, `qwen`, or `gmi`. Non-auto overrides are
+rejected in production. `SIMULATE_QWEN_FAILURE` works only outside production
+and exists to verify the automatic fallback path.
 
-## Local setup
+### 3. Apply Supabase migrations
 
-Requirements: Node.js 20.9 or newer, npm, and a Supabase project.
+Run these files in order through the Supabase SQL editor or migration tooling:
+
+```text
+supabase/migrations/001_initial_schema.sql
+supabase/migrations/002_profiles_and_guest.sql
+supabase/migrations/003_explanation_language.sql
+```
+
+In Supabase Auth:
+
+1. Enable Email/Password authentication.
+2. Enable anonymous sign-ins if guest access should be available.
+3. Add `http://localhost:3000/auth/callback` to the allowed redirect URLs when
+   email confirmation is enabled.
+
+For a fast hackathon demo, email confirmation may be disabled. For production,
+configure a custom SMTP provider rather than relying on Supabase’s limited
+default sender.
+
+### 4. Start the app
 
 ```bash
-npm install
-cp .env.example .env.local
 npm run dev
 ```
 
-Then:
+Open [http://localhost:3000](http://localhost:3000).
 
-1. Apply the SQL files in `supabase/migrations` in filename order.
-2. In Supabase Auth, keep Email/Password enabled.
-3. Enable **Allow anonymous sign-ins** in Supabase Auth to offer guest access.
-   Anonymous users keep private rescue history through the same owner-only RLS
-   policies, but cannot recover it after signing out or clearing browser data.
-4. For the fastest hackathon demo, email confirmation can be disabled. If it is
-   enabled, add `http://localhost:3000/auth/callback` and the deployed callback
-   URL to the allowed redirect URLs.
-5. Add provider credentials to `.env.local`.
-6. Set `DEMO_MODE=true` only when the deterministic locker fallback is desired.
+## How to use Moshi
 
-Verification:
+1. Create an account, sign in, or continue as a guest.
+2. Choose **Locker or belongings**, **Station or transport**,
+   **Hotel or reservation**, or **Another situation**.
+3. Choose English or Simplified Chinese for explanations.
+4. Describe what happened.
+5. Optionally add the location and facts already known.
+6. Select **Help me handle this**.
+7. Follow the ordered actions and preparation checklist.
+8. Copy or open the Japanese message full-screen for local staff.
+9. Enter what the staff member said to prepare the next reply.
+10. Reopen, resolve, or delete the rescue from the history screen.
+
+The preset lost-IC-card case can be loaded from the main rescue form for a
+consistent demonstration.
+
+## Deterministic demo fixture
+
+When `DEMO_MODE=true`, the specific lost-IC-card locker demo may use a
+deterministic plan only after both Qwen and GMI fail.
+
+This fixture:
+
+- is limited to the matching locker scenario;
+- supports English and Simplified Chinese explanations;
+- does not provide mock output for arbitrary situations;
+- is recorded with `fixtureUsed: true`;
+- is not presented as a successful live provider response.
+
+Keep `DEMO_MODE=false` when the fixture is not required.
+
+## Verification
+
+Run the application checks:
 
 ```bash
 npm run lint
 npm run typecheck
 npm run build
+```
+
+Or run all three:
+
+```bash
+npm run check
+```
+
+Test Qwen with English and Simplified Chinese rescue and conversation flows:
+
+```bash
 npm run test:qwen
 ```
 
-Optional Daytona verification:
+Verify Qwen, direct GMI, and simulated Qwen-to-GMI fallback paths:
+
+```bash
+npm run test:providers
+```
+
+An optional Daytona sandbox smoke-test script also exists for development
+verification. It is not claimed as a product sponsor integration in this
+submission.
 
 ```bash
 npm run test:daytona
 ```
 
-## Vercel deployment
+## Deployment
 
-1. Import the repository into Vercel as a Next.js project.
-2. Add every required variable from `.env.example` in Project Settings →
-   Environment Variables.
+Production deployment:
+
+**[https://moshi-moshi-bay.vercel.app/](https://moshi-moshi-bay.vercel.app/)**
+
+### Deploy to Vercel
+
+1. Import the repository into Vercel.
+2. Add the Supabase, Qwen, GMI, demo-mode, and site-URL environment variables.
 3. Set `NEXT_PUBLIC_SITE_URL` to the production origin.
-4. Add `https://YOUR_DOMAIN/auth/callback` to Supabase Auth redirect URLs.
-5. Apply the database migration before the first rescue is created.
-6. Deploy. Next.js is detected automatically; no custom build command is
-   required.
+4. Apply all Supabase migrations.
+5. Add `https://YOUR_DOMAIN/auth/callback` to Supabase Auth redirect URLs.
+6. Deploy. Vercel detects the Next.js application automatically.
 
-For production email confirmation, configure a custom SMTP provider in
-Supabase rather than relying on the limited default sender.
+Do not expose `QWEN_API_KEY` or `GMI_API_KEY` through a
+`NEXT_PUBLIC_` variable.
 
 ## Safety and limitations
 
-Moshi is not an emergency service, legal advisor, medical provider, station
-operator, hotel, or recovery guarantee. In immediate danger, the traveller
-should move to safety and seek nearby official staff or emergency assistance.
+Moshi is a travel guidance tool, not an emergency service, legal advisor,
+medical provider, station operator, hotel, or guarantee of recovery.
 
-Model output can be wrong or incomplete. The prompts prefer uncertainty over
-invented facts and direct the user to official staff when a procedure is
-unclear. Travellers should avoid sharing passports, payment details, or other
-sensitive information with unofficial helpers.
+The prompts explicitly instruct the models to:
 
-The current MVP accepts typed staff messages. It intentionally does not include
-maps, OCR, voice, phone calls, or native mobile features.
+- distinguish facts from assumptions;
+- state uncertainty instead of guessing;
+- avoid inventing phone numbers, fees, opening hours, policies, or laws;
+- avoid guaranteeing an outcome;
+- direct the traveller to official staff;
+- tell the traveller to move to safety and seek emergency or official help
+  when immediate danger is present.
 
-## Future improvements
+Model output can still be wrong or incomplete. Travellers should confirm
+important procedures with official staff and avoid sharing passports, payment
+details, or other sensitive information with unofficial helpers.
 
-- Optional speech input and read-aloud Japanese after privacy review
-- On-device OCR for signs and forms
-- Curated, source-linked official procedure packs for common operators
-- Offline access to saved handoff cards
-- Structured post-resolution feedback to improve planning quality
-- Additional languages while keeping Japanese staff output consistent
+The current MVP accepts typed input. It does **not** currently include maps,
+OCR, voice input, automated calls, native mobile features, or offline rescue
+plans.
+
+## Roadmap
+
+- Speech input and read-aloud Japanese after privacy review
+- On-device OCR for signs, tickets, and forms
+- Curated source-linked procedure packs for common operators
+- Offline access to saved staff handoff cards
+- Additional traveller explanation languages
+- Structured resolution feedback to improve rescue planning
+
+## Creator
+
+Created by **Lynn** for the **Agent Forge AI Hackathon**.
+
+[LinkedIn](https://www.linkedin.com/in/jiaying662312)
+

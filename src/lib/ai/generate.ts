@@ -27,10 +27,50 @@ function demoEnabled() {
   return process.env.DEMO_MODE?.toLowerCase() === "true";
 }
 
+type AIProviderMode = "auto" | "qwen" | "gmi";
+
+function providerMode(): AIProviderMode {
+  const configured = process.env.FORCE_AI_PROVIDER ?? "auto";
+  if (!["auto", "qwen", "gmi"].includes(configured)) {
+    throw new Error(
+      "FORCE_AI_PROVIDER must be one of: auto, qwen, or gmi.",
+    );
+  }
+  if (process.env.NODE_ENV === "production" && configured !== "auto") {
+    throw new Error(
+      "FORCE_AI_PROVIDER overrides are only available outside production.",
+    );
+  }
+  return configured as AIProviderMode;
+}
+
+function simulateQwenFailure(mode: AIProviderMode) {
+  return (
+    mode === "auto" &&
+    process.env.NODE_ENV !== "production" &&
+    process.env.SIMULATE_QWEN_FAILURE?.toLowerCase() === "true"
+  );
+}
+
 export async function generateRescue(
   input: RescueInput,
 ): Promise<RescueOutput> {
+  const mode = providerMode();
+
+  if (mode === "gmi") {
+    const plan = await callAndValidate(
+      getGmiProvider(),
+      rescueOutputWithoutProviderSchema,
+      rescueSystemPrompt,
+      (correction) => buildRescuePrompt(input, correction),
+    );
+    return { ...plan, provider: { name: "gmi", fallbackUsed: true } };
+  }
+
   try {
+    if (simulateQwenFailure(mode)) {
+      throw new Error("Simulated Qwen failure for provider-flow testing.");
+    }
     const plan = await callAndValidate(
       getQwenProvider(),
       rescueOutputWithoutProviderSchema,
@@ -39,6 +79,9 @@ export async function generateRescue(
     );
     return { ...plan, provider: { name: "qwen", fallbackUsed: false } };
   } catch (qwenError) {
+    if (mode === "qwen") {
+      throw qwenError;
+    }
     try {
       const plan = await callAndValidate(
         getGmiProvider(),
@@ -71,7 +114,23 @@ export async function generateConversation(
   session: RescueSession,
   staffMessage: string,
 ): Promise<ConversationOutput> {
+  const mode = providerMode();
+
+  if (mode === "gmi") {
+    const reply = await callAndValidate(
+      getGmiProvider(),
+      conversationOutputWithoutProviderSchema,
+      conversationSystemPrompt,
+      (correction) =>
+        buildConversationPrompt(session, staffMessage, correction),
+    );
+    return { ...reply, provider: { name: "gmi", fallbackUsed: true } };
+  }
+
   try {
+    if (simulateQwenFailure(mode)) {
+      throw new Error("Simulated Qwen failure for provider-flow testing.");
+    }
     const reply = await callAndValidate(
       getQwenProvider(),
       conversationOutputWithoutProviderSchema,
@@ -81,6 +140,9 @@ export async function generateConversation(
     );
     return { ...reply, provider: { name: "qwen", fallbackUsed: false } };
   } catch (qwenError) {
+    if (mode === "qwen") {
+      throw qwenError;
+    }
     try {
       const reply = await callAndValidate(
         getGmiProvider(),

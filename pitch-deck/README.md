@@ -32,9 +32,9 @@ the PDF and inspect every page.
 
 ## Replace a screenshot
 
-The deck currently uses real local product screenshots in four areas:
+The deck currently uses local images in four areas:
 
-1. rescue communication screenshot on slide 1
+1. exact supplied cover design on slide 1
 2. app home screenshot on slide 4
 3. rescue plan screenshot on slide 4
 4. communication screen screenshot on slide 7
@@ -58,6 +58,10 @@ value. For example:
 
 The images use `object-fit: cover`. Adjust the corresponding
 `object-position` rule in `styles.css` to change the visible crop.
+
+Slide 1 uses `assets/cover-reference.png` as a full-slide design to preserve
+the supplied reference exactly. Replace that file with another 16:9 image to
+change the cover without editing the remaining slides.
 
 To show an entire screenshot without cropping:
 
