@@ -23,7 +23,7 @@ export function Logo({
       <span
         className={cn(
           "grid size-9 place-items-center rounded-xl",
-          light ? "bg-white/12" : "bg-indigo text-white",
+          light ? "bg-white/12" : "bg-primary text-white",
         )}
       >
         <Sparkles className="size-4" aria-hidden="true" />

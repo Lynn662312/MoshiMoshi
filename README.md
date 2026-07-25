@@ -111,6 +111,8 @@ created tables may not be exposed automatically.
 - `QWEN_API_KEY`
 - `QWEN_BASE_URL`
 - `QWEN_MODEL`
+- `QWEN_ENABLE_THINKING`
+- `QWEN_TIMEOUT_MS`
 
 Qwen performs classification, planning, missing-information detection,
 Japanese/romaji generation, expected-question prediction, adaptive replies,
@@ -162,6 +164,8 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=
 QWEN_API_KEY=
 QWEN_BASE_URL=
 QWEN_MODEL=
+QWEN_ENABLE_THINKING=true
+QWEN_TIMEOUT_MS=120000
 GMI_API_KEY=
 GMI_BASE_URL=
 GMI_MODEL=
@@ -190,14 +194,16 @@ npm run dev
 
 Then:
 
-1. Paste `supabase/migrations/001_initial_schema.sql` into the Supabase SQL
-   editor, or apply it through your normal migration workflow.
+1. Apply the SQL files in `supabase/migrations` in filename order.
 2. In Supabase Auth, keep Email/Password enabled.
-3. For the fastest hackathon demo, email confirmation can be disabled. If it is
+3. Enable **Allow anonymous sign-ins** in Supabase Auth to offer guest access.
+   Anonymous users keep private rescue history through the same owner-only RLS
+   policies, but cannot recover it after signing out or clearing browser data.
+4. For the fastest hackathon demo, email confirmation can be disabled. If it is
    enabled, add `http://localhost:3000/auth/callback` and the deployed callback
    URL to the allowed redirect URLs.
-4. Add provider credentials to `.env.local`.
-5. Set `DEMO_MODE=true` only when the deterministic locker fallback is desired.
+5. Add provider credentials to `.env.local`.
+6. Set `DEMO_MODE=true` only when the deterministic locker fallback is desired.
 
 Verification:
 
@@ -205,6 +211,7 @@ Verification:
 npm run lint
 npm run typecheck
 npm run build
+npm run test:qwen
 ```
 
 Optional Daytona verification:

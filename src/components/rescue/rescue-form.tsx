@@ -88,6 +88,16 @@ export function RescueForm() {
     );
   }
 
+  function selectCategory(nextCategory: RescueCategory) {
+    if (nextCategory === category) return;
+
+    setCategory(nextCategory);
+    setSituation("");
+    setLocationContext("");
+    setKnownInformation("");
+    setError("");
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setLoading(true);
@@ -135,12 +145,12 @@ export function RescueForm() {
             <button
               type="button"
               key={item.value}
-              onClick={() => setCategory(item.value)}
+              onClick={() => selectCategory(item.value)}
               className={cn(
                 "min-h-32 rounded-2xl border p-4 text-left transition sm:min-h-36",
                 active
-                  ? "border-indigo bg-indigo text-white shadow-card"
-                  : "border-line bg-white hover:border-indigo/30",
+                  ? "border-primary bg-primary text-white shadow-card"
+                  : "border-line bg-surface hover:border-primary/45",
               )}
               aria-pressed={active}
             >
@@ -265,12 +275,12 @@ export function RescueForm() {
 
       {loading && (
         <div
-          className="fixed inset-0 z-50 grid place-items-center bg-ink/45 p-5 backdrop-blur-sm"
+          className="fixed inset-0 z-50 grid place-items-center bg-inverse/60 p-5 backdrop-blur-sm"
           role="status"
           aria-live="polite"
         >
           <div className="w-full max-w-sm rounded-[1.75rem] bg-canvas p-6 shadow-float">
-            <div className="grid size-12 place-items-center rounded-2xl bg-indigo text-white">
+            <div className="grid size-12 place-items-center rounded-2xl bg-primary text-white">
               <LoaderCircle className="size-6 animate-spin" />
             </div>
             <h2 className="mt-5 text-xl font-semibold tracking-[-0.035em] text-ink">

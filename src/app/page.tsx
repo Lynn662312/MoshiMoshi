@@ -10,6 +10,7 @@ import {
   TrainFront,
 } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
 
 const workflow = [
   {
@@ -40,6 +41,7 @@ export default function Home() {
         <header className="page-shell relative flex h-20 items-center justify-between">
           <Logo />
           <div className="flex items-center gap-2">
+            <ThemeToggle />
             <Link className="button button-ghost hidden sm:inline-flex" href="/login">
               Log in
             </Link>
@@ -75,15 +77,15 @@ export default function Home() {
             </div>
             <div className="mt-7 flex flex-wrap gap-x-5 gap-y-2 text-xs font-medium text-muted">
               <span className="inline-flex items-center gap-1.5">
-                <ShieldCheck className="size-4 text-success" />
+                <ShieldCheck className="size-4 text-success-text" />
                 Saved privately
               </span>
               <span className="inline-flex items-center gap-1.5">
-                <Languages className="size-4 text-success" />
+                <Languages className="size-4 text-success-text" />
                 Japanese + romaji
               </span>
               <span className="inline-flex items-center gap-1.5">
-                <BadgeCheck className="size-4 text-success" />
+                <BadgeCheck className="size-4 text-success-text" />
                 Built for real situations
               </span>
             </div>
@@ -91,9 +93,9 @@ export default function Home() {
 
           <div className="relative mx-auto w-full max-w-[31rem] lg:justify-self-end">
             <div className="absolute -left-12 top-12 size-32 rounded-full bg-coral/20 blur-3xl" />
-            <div className="absolute -right-12 bottom-10 size-40 rounded-full bg-indigo/20 blur-3xl" />
-            <div className="relative rotate-[1.5deg] rounded-[2rem] border border-indigo/10 bg-indigo p-3 shadow-float">
-              <div className="overflow-hidden rounded-[1.45rem] bg-[#f9f7f1]">
+            <div className="absolute -right-12 bottom-10 size-40 rounded-full bg-primary/20 blur-3xl" />
+            <div className="relative rotate-[1.5deg] rounded-[2rem] border border-primary/20 bg-primary p-3 shadow-float">
+              <div className="overflow-hidden rounded-[1.45rem] bg-surface-raised">
                 <div className="flex items-center justify-between border-b border-line px-5 py-4">
                   <Logo href="/" compact />
                   <span className="rounded-full bg-coral/12 px-3 py-1 text-[10px] font-bold uppercase tracking-[.14em] text-coral-dark">
@@ -107,8 +109,8 @@ export default function Home() {
                   <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-ink">
                     Lost IC card linked to a locker
                   </h2>
-                  <div className="mt-5 rounded-2xl border border-line bg-white p-4">
-                    <p className="text-[11px] font-bold uppercase tracking-[.14em] text-success">
+                  <div className="mt-5 rounded-2xl border border-line bg-surface p-4">
+                    <p className="text-[11px] font-bold uppercase tracking-[.14em] text-success-text">
                       Do this now
                     </p>
                     <p className="mt-2 text-sm font-medium leading-6 text-ink">
@@ -116,7 +118,7 @@ export default function Home() {
                       ticket gate.
                     </p>
                   </div>
-                  <div className="mt-3 rounded-2xl bg-ink p-5 text-white">
+                  <div className="mt-3 rounded-2xl bg-inverse p-5 text-white">
                     <p className="text-[10px] font-bold uppercase tracking-[.15em] text-white/55">
                       Show this to station staff
                     </p>
@@ -150,7 +152,7 @@ export default function Home() {
           <div className="grid gap-3 sm:grid-cols-3">
             {workflow.map((item) => (
               <article
-                className="rounded-3xl border border-line bg-white p-5 sm:min-h-64"
+                className="rounded-3xl border border-line bg-surface p-5 sm:min-h-64"
                 key={item.number}
               >
                 <div className="flex items-center justify-between">
@@ -169,7 +171,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="bg-ink text-white">
+      <section className="bg-inverse text-white">
         <div className="page-shell grid gap-8 py-16 sm:grid-cols-[1fr_auto] sm:items-center sm:py-20">
           <div>
             <p className="text-xs font-bold uppercase tracking-[.17em] text-coral-light">
@@ -179,7 +181,10 @@ export default function Home() {
               Keep a calm plan in your pocket for the moments you did not plan.
             </h2>
           </div>
-          <Link className="button bg-white text-ink hover:bg-white/90" href="/register">
+          <Link
+            className="button bg-inverse-foreground text-inverse hover:bg-inverse-foreground/90"
+            href="/register"
+          >
             Create your account
             <ArrowRight className="size-4" />
           </Link>

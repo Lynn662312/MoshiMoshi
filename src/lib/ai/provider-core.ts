@@ -8,6 +8,8 @@ type ProviderConfig = {
   baseURL?: string;
   model?: string;
   label: string;
+  enableThinking?: boolean;
+  timeoutMs?: number;
 };
 
 export type ProviderCall = (
@@ -32,19 +34,25 @@ export function createProviderCall(config: ProviderConfig): ProviderCall {
     const client = new OpenAI({
       apiKey: config.apiKey,
       baseURL: config.baseURL,
-      timeout: 20_000,
+      timeout: config.timeoutMs ?? 120_000,
       maxRetries: 0,
     });
 
-    const response = await client.chat.completions.create({
+    const request = {
       model: config.model,
       temperature: 0.2,
       response_format: { type: "json_object" },
+      ...(config.enableThinking === undefined
+        ? {}
+        : { enable_thinking: config.enableThinking }),
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt },
       ],
-    });
+    } as OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming & {
+      enable_thinking?: boolean;
+    };
+    const response = await client.chat.completions.create(request);
 
     const content = response.choices[0]?.message?.content;
     if (!content) {
@@ -77,6 +85,10 @@ export async function callAndValidate<T>(
           : error instanceof Error
             ? error.message
             : "Provider call failed";
+
+      if (!(error instanceof z.ZodError) && !(error instanceof SyntaxError)) {
+        throw error;
+      }
     }
   }
 

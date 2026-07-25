@@ -9,6 +9,7 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "check": "npm run lint && npm run typecheck && npm run build",
+    "test:qwen": "node --env-file=.env --import tsx scripts/qwen-smoke-test.ts",
     "test:daytona": "tsx scripts/daytona-smoke-test.ts"
   },
   "dependencies": {

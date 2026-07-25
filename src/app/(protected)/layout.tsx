@@ -11,7 +11,7 @@ export default async function ProtectedLayout({
   const user = await requireUser();
   return (
     <div className="min-h-dvh bg-canvas">
-      <AppHeader email={user.email} />
+      <AppHeader email={user.email} isGuest={user.is_anonymous} />
       {children}
     </div>
   );

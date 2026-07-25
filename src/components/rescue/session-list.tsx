@@ -104,7 +104,7 @@ export function SessionList({
                   <span
                     className={
                       session.status === "resolved"
-                        ? "rounded-full bg-success/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[.1em] text-success"
+                        ? "rounded-full bg-success/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[.1em] text-success-text"
                         : "rounded-full bg-coral/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[.1em] text-coral-dark"
                     }
                   >

@@ -77,10 +77,10 @@ function CopyButton({ value }: { value: string }) {
     <button
       type="button"
       onClick={copy}
-      className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-line bg-white px-3 text-xs font-semibold text-muted transition hover:text-ink"
+      className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-line bg-surface px-3 text-xs font-semibold text-muted transition hover:text-ink"
     >
       {copied ? (
-        <Check className="size-4 text-success" />
+        <Check className="size-4 text-success-text" />
       ) : (
         <Copy className="size-4" />
       )}
@@ -103,7 +103,7 @@ function LanguageCard({
   label?: string;
 }) {
   return (
-    <div className="overflow-hidden rounded-2xl bg-ink text-white">
+    <div className="overflow-hidden rounded-2xl bg-inverse text-white">
       <div className="border-b border-white/10 p-5 sm:p-6">
         <p className="text-[10px] font-bold uppercase tracking-[.15em] text-coral-light">
           {label}
@@ -128,7 +128,7 @@ function LanguageCard({
         <button
           type="button"
           onClick={onFullscreen}
-          className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-white px-3 text-xs font-semibold text-ink"
+          className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-inverse-foreground px-3 text-xs font-semibold text-inverse"
         >
           <Maximize2 className="size-4" />
           Full screen for staff
@@ -161,7 +161,7 @@ function StaffDisplay({
 
   return (
     <div
-      className="fixed inset-0 z-[70] overflow-y-auto bg-[#fffdf8] p-5 sm:p-10"
+      className="fixed inset-0 z-[70] overflow-y-auto bg-surface-raised p-5 sm:p-10"
       role="dialog"
       aria-modal="true"
       aria-label="Message for staff"
@@ -175,7 +175,7 @@ function StaffDisplay({
           <button
             type="button"
             onClick={onClose}
-            className="icon-button border border-line bg-white"
+            className="icon-button border border-line bg-surface"
             aria-label="Close staff display"
           >
             <X className="size-5" />
@@ -307,7 +307,7 @@ export function RescueWorkspace({ session }: { session: RescueSession }) {
               type="button"
               disabled={actionLoading}
               onClick={deleteSession}
-              className="icon-button border border-line bg-white hover:text-coral-dark"
+              className="icon-button border border-line bg-surface hover:text-coral-dark"
               aria-label="Delete rescue"
             >
               <Trash2 className="size-4" />
@@ -315,7 +315,7 @@ export function RescueWorkspace({ session }: { session: RescueSession }) {
           </div>
         </div>
 
-        <header className="mt-6 rounded-[1.75rem] bg-indigo p-6 text-white sm:p-8">
+        <header className="mt-6 rounded-[1.75rem] bg-primary p-6 text-white sm:p-8">
           <div className="flex flex-wrap items-center gap-2 text-[10px] font-bold uppercase tracking-[.15em] text-white/62">
             <span className="rounded-full bg-white/10 px-2.5 py-1">
               {session.category}
@@ -354,7 +354,7 @@ export function RescueWorkspace({ session }: { session: RescueSession }) {
               <ol className="space-y-4">
                 {plan.immediateSteps.map((step) => (
                   <li className="flex gap-4" key={step.order}>
-                    <span className="grid size-8 shrink-0 place-items-center rounded-full bg-ink font-mono text-xs font-bold text-white">
+                    <span className="grid size-8 shrink-0 place-items-center rounded-full bg-inverse font-mono text-xs font-bold text-white">
                       {step.order}
                     </span>
                     <div>
@@ -426,7 +426,7 @@ export function RescueWorkspace({ session }: { session: RescueSession }) {
                         <strong className="text-ink">Why they ask:</strong>{" "}
                         {question.whyTheyAsk}
                       </p>
-                      <div className="mt-4 rounded-xl bg-white p-4">
+                      <div className="mt-4 rounded-xl bg-surface p-4">
                         <p className="text-[10px] font-bold uppercase tracking-[.13em] text-indigo">
                           Suggested reply
                         </p>
@@ -467,7 +467,7 @@ export function RescueWorkspace({ session }: { session: RescueSession }) {
                       <p className="mt-2 text-sm font-medium leading-6">
                         {turn.staffMessage}
                       </p>
-                      <div className="mt-4 rounded-xl bg-white p-4">
+                      <div className="mt-4 rounded-xl bg-surface p-4">
                         <p className="text-xs leading-5 text-muted">
                           {turn.response.staffMeaning}
                         </p>
